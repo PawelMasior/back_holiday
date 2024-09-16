@@ -9,8 +9,8 @@ llm_config={
     # "config_list": autogen.config_list_from_dotenv(".env", {"gpt-4o": "OPENAI_API_KEY"}), #gpt-4o-mini
     # "config_list": autogen.config_list_from_dotenv(".env", {"gpt-3.5-turbo": "OPENAI_API_KEY"}),
     # "config_list": autogen.config_list_from_dotenv(".env", {"gpt-4o-mini": "OPENAI_API_KEY"}),
-    # "config_list": [{"model": "gpt-4o-mini", "api_key": os.environ["OPENAI_API_KEY"]}],
-    "config_list": [{"model": "gpt-4o", "api_key": os.environ["OPENAI_API_KEY"]}],
+    "config_list": [{"model": "gpt-4o-mini", "api_key": os.environ["OPENAI_API_KEY"]}],
+    # "config_list": [{"model": "gpt-4o", "api_key": os.environ["OPENAI_API_KEY"]}],
     "timeout": 120,
     }
 
@@ -67,8 +67,7 @@ agent_secretary = autogen.ConversableAgent(
     ## You are Secretary.
 
     ### You can do:
-    - **Wrap up final information into raport.md**
-    - **Save data into excel csv**
+    - **Wrap up  information into reports**
 
     ### Reply 'TERMINATE' when the task is complete.
     """,

@@ -9,9 +9,50 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join('settings',f'ai-agen
 from dotenv import load_dotenv
 load_dotenv()
 
-with open(os.path.join(os.getcwd(), 'initialize.py')) as f:
-    exec(f.read(), globals())
+# with open(os.path.join(os.getcwd(), 'initialize.py')) as f:
+#     exec(f.read(), globals())
+import autogen
+import numpy as np
+import random
+import json
+import shutil
+import pandas as pd
+from typing import Annotated, Literal
+from datetime import datetime
+from prompts.definitions import *
+from tools.web import web_search
+from tools.firecrawl import web_page
+from tools.twilio import sms_send, sms_inbox
+from tools.info import *
+from tools.excel import save_excel
+import openai
+openai.api_key = os.getenv('OPENAI_API_KEY')
+client_openai = openai.OpenAI()
 
+from settings.func import *
+from review.func import dbname, log_report
+from agents.agents import *
+
+import warnings
+seed = 123
+np.random.seed(seed)
+random.seed(seed)
+warnings.filterwarnings("ignore")
+clean_memory()
+
+Reports = []
+def save_report(
+        name: Annotated[str, "Report name"],
+        content: Annotated[str, "Markdown content of report"],
+        ) -> str:
+    global Reports
+    r = {
+        'name': name,
+        'content': content,
+        'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+    Reports.append(r)  # Use append() instead of +=
+    return f"Success: Report {name} saved."
 # =============================================================================
 # FastAPI
 # =============================================================================
@@ -46,81 +87,141 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# =============================================================================
+# Agents
+# =============================================================================
+agent_planner = autogen.ConversableAgent(
+    name="Planner",
+    system_message = """
+    # You are the Planner monitoring the progress of the task to complete it.
 
+    ### Responsibilities
+    **Plan Development and Execution:**
+    - **Create Plan:** Outline specific steps needed to complete the research.
+    - **Monitor Progress:** Track the progress of each step and verify completion or if additional steps are required.
+    - **Make Decisions:** Make high-level decisions based on info from agents.
+    **Error Handling:**
+    - **Handle Errors:** Develop a new plan or adjust actions if errors occur or if responses are incorrect.
+    - **Guide Adjustments:** Direct agents on necessary changes to achieve task goals.
+
+    ### Reply 'TERMINATE' when the whole task is completed.
+    """,
+    llm_config=llm_config,
+    is_termination_msg=lambda msg: msg.get("content") is not None and "TERMINATE" in msg["content"],
+    max_consecutive_auto_reply=3,
+    human_input_mode="NEVER",
+)
+
+agent_researcher = autogen.ConversableAgent(
+    name="Researcher",
+    system_message="""
+    # You are the Researcher collecting information from the web.
+
+    ### Responsibilities
+    - **Provide Tools Output:** Return results from executed tools to other agents.
+    - **Deep dive:** Adjust research to gather precise information as needed.
+    - **Save report:** Save collected info from research into report.
+    
+
+    ### Reply 'TERMINATE' when the whole task is completed.
+    """,
+    llm_config=llm_config,
+    is_termination_msg=lambda msg: msg.get("content") is not None and "TERMINATE" in msg["content"],
+    max_consecutive_auto_reply=5,
+    human_input_mode="NEVER",
+)
 
 @app.get("/")
-def home(): return 'hello'
+def home(): return 'tripoplan'
             
 @app.get("/job/")#, tags=["APIs"], response_model=str)
 def _stream(
         name_city: str = Query("Napoli"),
-        desc_preferences: str = Query("I like discovering local specialities"),
+        desc_user: str = Query("local specialities,low budget,adventure"),
         date_fr: str = Query("07-12-2024"),
         date_to: str = Query("14-12-2024"),
-        bool_restaurants: bool = Query(True),
-        bool_museums: bool = Query(True),
-        bool_events: bool = Query(True),
-        bool_local: bool = Query(True),
-        bool_avoid: bool = Query(True),
+        bool_restaurants: bool = Query(False),
+        bool_events: bool = Query(False),
+        # bool_museums: bool = Query(True),
+        # bool_local: bool = Query(True),
+        # bool_avoid: bool = Query(True),
         ):
+    # Reports = []
+    # =============================================================================
+    # Tools
+    # =============================================================================
+    autogen.register_function(web_search, caller=agent_researcher, executor=executor,
+        name="web_search",
+        description="""Searches internet with query, providing concise or detailed content as needed."""
+    )
 
-    agents_tool = [agent_researcher] #filter here
-    #agents_tool = [agent_researcher] #filter here
-    agents_const = [agent_planner, agent_secretary]
-    agents_chat = agents_const + agents_tool
-    agents_transitions = {
-        agent_planner: [agent_researcher, agent_secretary],
-        agent_researcher: [agent_secretary],
-        agent_secretary: [agent_planner],
-    }
-    group_chat = autogen.GroupChat(
-        agents=agents_chat,
-        messages=[],
-        max_round=20,
-        allowed_or_disallowed_speaker_transitions=agents_transitions,
-        speaker_transitions_type="allowed",        
+    autogen.register_function(web_page, caller=agent_researcher, executor=executor,
+        name="web_page",
+        description="""Retrieves website content by scraping URL."""
     )
-    group_chat_manager = autogen.GroupChatManager(
-        groupchat=group_chat,
-        llm_config=llm_config,
-        #{"config_list": [{"model": "gpt-4o-mini", "api_key": os.environ["OPENAI_API_KEY"]}]},
+
+    autogen.register_function(save_report, caller=agent_researcher, executor=executor,
+        name="save_report",
+        description="""Saves report in markdown format."""
     )
-    for i, agent in enumerate(agents_chat): 
-        if agent.name == 'Planner': pass
-        else:
-            agents_other = [a for i_a, a in enumerate(agents_chat) if i!=i_a]
-            queue=[
-                {"recipient": agent, "sender": executor, "summary_method": "last_msg"},
-                {"recipient": group_chat_manager, "sender": agent, "summary_method": "reflection_with_llm"},
-                ] + [{"recipient": a, "sender": agent, "summary_method": "reflection_with_llm"} for a in agents_other]
-            agent.register_nested_chats(trigger=group_chat_manager, chat_queue=queue)
-    # executor.register_nested_chats(
-    #     trigger=agent_browser, 
-    #     chat_queue=[{"recipient": agent_browser_assistant, 
-    #                  "sender": agent_browser, 
-    #                  "summary_method": "last_msg",
-    #                  "max_turns": 1}])
+    # =============================================================================
+    queue=[
+        {"recipient": agent_researcher, "sender": executor, "summary_method": "last_msg"},
+        {"recipient": agent_planner, "sender": agent_researcher, "summary_method": "reflection_with_llm"},
+        ]
+    agent_researcher.register_nested_chats(trigger=agent_planner, chat_queue=queue)
+    # =============================================================================
+
+    # =============================================================================
+    Plan = []
+    Plan = [prompt_start(name_city, desc_user, date_fr, date_to)]
+    if bool_restaurants: 
+        Plan += [prompt_food(name_city, desc_user)]
+    if bool_events: 
+        Plan += [prompt_events(name_city, desc_user, date_fr, date_to)]
+        
+    # =============================================================================
 
     logging_session_id = autogen.runtime_logging.start(config={"dbname": dbname})
     chat_results = agent_planner.initiate_chats([{
-                "recipient": group_chat_manager,
+                "recipient": agent_researcher,
                 "message": f"""
-                Complete Milestone: {t}
+                {t}
 
                 # Additional intructions:
-                    - Focuse on the Milestone and perform only necessary steps.                
-                    - Go to next Milestone when previous Milestone is completed.
-                    - Continue work untill Milestone goal is completed. 
+                - Focuse on the task and perform only necessary steps.                
+                - Finalize task with saving collected information into the report! 
                 """,
-                "max_turns": 20,
-                "max_round": 60,
+                "max_turns": 10,
+                "max_round": 30,
                 "summary_method": "reflection_with_llm",
             } for t in Plan])
     autogen.runtime_logging.stop()
 
-    # if not 'chat_results' in globals(): chat_results = [[]]
-    # log_report(dbname, logging_session_id, task, Plan, chat_results)
-    return 'Check conversation report'
+    # =============================================================================
+    # log_report(dbname, logging_session_id, 'plan', Plan, chat_results)
+    # =============================================================================
+    # =============================================================================
+    df_info = pd.DataFrame(Reports).sort_values(by='time')
+    info = '\n\n'.join(df_info['content'])
+    prompt_report = f"""{prompt_final(name_city, desc_user, date_fr, date_to, bool_restaurants, bool_events)}
+    Collected information:
+        {info}
+    """
+
+    response = client_openai.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {
+            "role": "user",
+            "content": [{ "type": "text", "text": prompt_report,},],
+        }
+    ],
+    max_tokens=5000,
+    temperature=0.
+    )
+    final_report = response.choices[0].message.content
+    return HTMLResponse(content=final_report)
 
 
 if __name__ == "__main__":

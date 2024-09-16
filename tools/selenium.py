@@ -4,11 +4,11 @@ import pandas as pd
 import re
 import time
 import random
-import openai
-from openai import OpenAI
 from datetime import datetime
 from copy import deepcopy
 from settings.gcp import img_to_bucket, blobs_clean
+import openai
+from openai import OpenAI
 openai.api_key = os.getenv('OPENAI_API_KEY')
 client_openai = OpenAI()
 

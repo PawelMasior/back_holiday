@@ -30,17 +30,18 @@ folder = 'temporary'
 report_name = 'report.md'
 def save_report(
         markdown_content: Annotated[str, "Markdown content of report"],
+        report_name: Annotated[str, "Report name"],
         ) -> str:
     try:
-      with open(os.path.join(folder, report_name), 'w') as f:
+      with open(os.path.join(folder, report_name+'.md'), 'w') as f:
           f.write(markdown_content)
-      return f"Success: saved report to '{report_name}'"
+      return f"Success: saved report to '{report_name+'.md'}'"
     except Exception as e:
         return f"Error: {str(e)[:200]}"
 # print(save_report(markdown_content))
 
 def read_report(
-        report_name: Annotated[str, "Markdown content of report"] = report_name,        
+        report_name: Annotated[str, "Markdown report name"],        
         ) -> str:
     try:
         folder = 'temporary'

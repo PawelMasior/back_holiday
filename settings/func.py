@@ -1,6 +1,7 @@
 import os
 import autogen
 import shutil 
+import tiktoken
 
 def clean_memory():
     Paths = [
@@ -23,6 +24,19 @@ def clean_memory():
         print(f"Warning: Clean up logs.db: {str(e)[:200]}")
     if 'temporary' in os.listdir(): shutil.rmtree(os.path.join('temporary'))
     if not 'temporary' in os.listdir(): os.mkdir(os.path.join('temporary'))        
+
+def nr_tokens(text: str, model: str = "gpt-3.5-turbo") -> int:
+    encoding_map = {
+        "gpt-3.5-turbo": "cl100k_base",
+        "gpt-4": "cl100k_base",
+        "text-davinci-003": "p50k_base",
+    }
+    encoding_name = encoding_map.get(model)
+    if encoding_name is None:
+        raise ValueError(f"Encoding for model '{model}' is not defined.")
+    encoding = tiktoken.get_encoding(encoding_name)
+    tokens = encoding.encode(text)
+    return len(tokens)
 
 
 def dir_files():
