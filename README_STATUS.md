@@ -2,10 +2,9 @@
 
 **Plan your perfect holiday with the latest information about your destination:**
 
-- **All-in-One Report:** Access all details on what to do and how to maximize your holiday experience.
-- **Enhanced Personalization:** Discover activities and attractions tailored to your personal interests.
-- **Real-Time Availability:** Check if destination places are open and available during your visit.
-- **Local Information:** Checking local internet sources to first hand information.
+- **All-in-One Report:** Access all details on what to do and how - no need for hours of planning.
+- **Enhanced Personalization:** activities and attractions to your personal interests.
+- **Local & Real-time:** based on local internet sources with latest information on vailability.
 
 ## 💼 Business Features
 

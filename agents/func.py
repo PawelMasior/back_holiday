@@ -31,22 +31,17 @@ agent_human = autogen.ConversableAgent(
     llm_config=llm_config,
     is_termination_msg=lambda msg: msg.get("content") is not None and "TERMINATE" in msg["content"],
     max_consecutive_auto_reply=10,
-    human_input_mode="NEVER",
+    human_input_mode="ALWAYS",
 )
 
 agent_planner = autogen.ConversableAgent(
     name="Planner",
     system_message = """
-    ## You are the Planner responsible for overseeing the progress of the task and coordinating with other agents.
-    
-    ### Goal
-    - Create a plan to complete the given task.
-    - Verify if the task is completed.
-    
+    # You are the Planner monitoring the progress of the task to complete it.
+
     ### Responsibilities
     **Plan Development and Execution:**
-    - **Create Plan:** Outline specific steps needed to complete the task with responsible agents.
-    - **Coordinate Agents:** Ensure agents and their tools are aligned with the plan.
+    - **Create Plan:** Outline specific steps needed to complete the research.
     - **Monitor Progress:** Track the progress of each step and verify completion or if additional steps are required.
     - **Make Decisions:** Make high-level decisions based on info from agents.
     **Error Handling:**
@@ -61,33 +56,16 @@ agent_planner = autogen.ConversableAgent(
     human_input_mode="NEVER",
 )
 
-agent_secretary = autogen.ConversableAgent(
-    name="Secretary",
-    system_message = """
-    ## You are Secretary.
-
-    ### You can do:
-    - **Wrap up  information into reports**
-
-    ### Reply 'TERMINATE' when the task is complete.
-    """,
-    llm_config=llm_config,
-    is_termination_msg=lambda msg: msg.get("content") is not None and "TERMINATE" in msg["content"],
-    max_consecutive_auto_reply=3,
-    human_input_mode="NEVER",
-)
-# - **Send and read SMS.**
-# - **Provide user information**
-
 agent_researcher = autogen.ConversableAgent(
     name="Researcher",
     system_message="""
-    # You are the Researcher collecting information directly from the web. (not in browser).
+    # You are the Researcher collecting information from the web.
 
-    ### Your Role
+    ### Responsibilities
     - **Provide Tools Output:** Return results from executed tools to other agents.
-    - **Provide Results:** Report findings to other agents.
     - **Deep dive:** Adjust research to gather precise information as needed.
+    - **Save report:** Save collected info from research into report.
+    
 
     ### Reply 'TERMINATE' when the whole task is completed.
     """,
@@ -97,3 +75,15 @@ agent_researcher = autogen.ConversableAgent(
     human_input_mode="NEVER",
 )
 
+agent_secretary = autogen.ConversableAgent(
+    name="Secretary",
+    system_message="""
+    # You are the Secretary preparing final report for the user.
+
+    ### Reply 'TERMINATE' when the whole task is completed.
+    """,
+    llm_config=llm_config,
+    is_termination_msg=lambda msg: msg.get("content") is not None and "TERMINATE" in msg["content"],
+    max_consecutive_auto_reply=3,
+    human_input_mode="NEVER",
+)
