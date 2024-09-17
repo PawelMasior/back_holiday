@@ -32,6 +32,7 @@ np.random.seed(seed)
 random.seed(seed)
 warnings.filterwarnings("ignore")
 # clean_memory()
+dbname = os.path.join('review',f"logs.db")
 
 # =============================================================================
 Reports = []
@@ -198,9 +199,9 @@ def _report(
                 "summary_method": "reflection_with_llm",
             }]
     # =============================================================================
-    # logging_session_id = autogen.runtime_logging.start(config={"dbname": dbname})
+    logging_session_id = autogen.runtime_logging.start(config={"dbname": dbname})
     chat_results = agent_planner.initiate_chats(Conv)
-    # autogen.runtime_logging.stop()
+    autogen.runtime_logging.stop()
     # =============================================================================
 
     # with open(os.path.join('temporary', 'report_final.md'), 'w', encoding='utf-8') as f:
