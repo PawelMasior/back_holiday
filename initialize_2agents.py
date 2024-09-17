@@ -1,6 +1,5 @@
 # %reset -f
 import os
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join('settings',f'ai-agents-project-key.json')
 from dotenv import load_dotenv
 load_dotenv()
 import autogen
