@@ -23,11 +23,9 @@ from datetime import datetime
 from agents.func import *
 from prompts.func import *
 from settings.func import *
-from review.func import dbname, log_report
+# from review.func import dbname, log_report
 from tools.web import web_search
 from tools.firecrawl import web_page
-from tools.twilio import sms_send, sms_inbox
-from tools.excel import save_excel
 
 seed = 123
 np.random.seed(seed)
