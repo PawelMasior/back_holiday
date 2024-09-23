@@ -44,3 +44,18 @@ def web_page(
         )
         web_content = response.choices[0].message.content
     return web_content
+
+
+def web_page_raw(
+        url: Annotated[str, "Url"],
+    ) -> str:
+    
+    page_content = firecrawl.scrape_url(
+        url=url,
+        params={
+            "pageOptions":{
+                "onlyMainContent": True
+            }
+        })
+    web_content = page_content['markdown']
+    return web_content

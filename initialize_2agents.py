@@ -20,6 +20,8 @@ from tools.web import web_search
 from tools.firecrawl import web_page
 from tools.twilio import sms_send, sms_inbox
 from tools.excel import save_excel
+from tools.info import *
+from tools.save_restaurants import *
 import openai
 openai.api_key = os.getenv('OPENAI_API_KEY')
 client_openai = openai.OpenAI()

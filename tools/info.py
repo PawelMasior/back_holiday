@@ -1,30 +1,32 @@
 import json
 import os
+import pandas as pd
 from typing import Annotated, Literal
+import openai
+openai.api_key = os.getenv('OPENAI_API_KEY')
+client_openai = openai.OpenAI()
 
-def user_info(
-    ) -> str:
-    agent_info = {
-        'name': 'John Smith',
-        'birth_date': '12th January 2001',    
-        'company': 'Agent Company',
-        'email': 'john.smith.agentai@gmail.com',
-        'password': 'StrongPassword123!123',
-        'describtion': 'You are regular user',
-        'twitter_user_name': 'smith_john56714',
-        }
-    agent_details = {k.replace('_',' '): agent_info[k] for k in [
-        'name', 'birth_date', 'company', 'email', 'password', 'twitter_user_name']}
-
-    return json.dumps(agent_details)
-
-def user_phone_nr(
-    ) -> str: 
-    return '+48732096499'
-
-def gcp_agent_folder(
-    ) -> str: 
-    return 'agent-johnsmith'
+def save_data(markdown_content, name, Format):
+    try:
+        prompt = f"""
+        You extract {name} data based on markdown content.
+        Keep all {name} from the markdown content.
+        """
+        response = client_openai.beta.chat.completions.parse(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": f"RAW_CONTENT: {markdown_content}"},
+            ],
+            response_format=Format,
+        )
+        json_extract = json.loads(response.choices[0].message.content)
+        df = pd.DataFrame(json_extract['data'])
+        df.to_csv(os.path.join(folder, f"{name}.csv"), index=False, sep='\t',  encoding='utf-16')
+        msg = f"Success: Saved {df.shape[0]} {name} into the report."
+    except Exception as e:
+        msg = f"Error: {str(e)[:200]}"
+    return msg
 
 folder = 'temporary'
 report_name = 'report.md'
