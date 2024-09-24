@@ -22,6 +22,15 @@ executor = autogen.ConversableAgent(
     human_input_mode="NEVER",
 )
 
+def get_executor(name):
+    return autogen.ConversableAgent(
+        name=f"tool_executor_{name}",
+        llm_config=False,
+        is_termination_msg=lambda msg: msg.get("content") is not None and "TERMINATE" in msg["content"],
+        default_auto_reply="TERMINATE",
+        human_input_mode="NEVER",
+    )
+
 agent_human = autogen.ConversableAgent(
     name="HumanProxy",
     system_message="""
@@ -74,6 +83,28 @@ agent_researcher = autogen.ConversableAgent(
     max_consecutive_auto_reply=5,
     human_input_mode="NEVER",
 )
+
+def get_agent_researcher(name):
+    return autogen.ConversableAgent(
+        name=f"Researcher {name}",
+        system_message="""
+        # You are the Researcher collecting information from the web.
+
+        ### Responsibilities
+        - **Provide Tools Output:** Return results from executed tools to other agents.
+        - **Deep dive:** Adjust research to gather precise information as needed.
+        - **Save report:** Save collected info from research into report.
+        
+
+        ### Reply 'TERMINATE' when the whole task is completed.
+        """,
+        llm_config=llm_config,
+        is_termination_msg=lambda msg: msg.get("content") is not None and "TERMINATE" in msg["content"],
+        max_consecutive_auto_reply=5,
+        human_input_mode="NEVER",
+        )
+
+
 
 agent_secretary = autogen.ConversableAgent(
     name="Secretary",

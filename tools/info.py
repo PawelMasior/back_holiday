@@ -6,7 +6,7 @@ import openai
 openai.api_key = os.getenv('OPENAI_API_KEY')
 client_openai = openai.OpenAI()
 
-def save_data(markdown_content, name, Format):
+def save_data(markdown_content, name, Format, Data):
     try:
         prompt = f"""
         You extract {name} data based on markdown content.
@@ -21,9 +21,10 @@ def save_data(markdown_content, name, Format):
             response_format=Format,
         )
         json_extract = json.loads(response.choices[0].message.content)
+        Data[name] = json_extract
         df = pd.DataFrame(json_extract['data'])
         df.to_csv(os.path.join(folder, f"{name}.csv"), index=False, sep='\t',  encoding='utf-16')
-        msg = f"Success: Saved {df.shape[0]} {name} into the report."
+        msg = f"Success: Saved {df.shape[0]} {name} into the report. Complete the conversation. TERMINATE"
     except Exception as e:
         msg = f"Error: {str(e)[:200]}"
     return msg

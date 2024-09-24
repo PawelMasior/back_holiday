@@ -2,6 +2,10 @@
 
 **Plan your perfect holiday with the latest information about your destination:**
 
+#### Emoji link
+
+[**emoji**](https://emojidb.org)
+
 ## 📈 Development
 
 ### **Backend Setup**
@@ -44,3 +48,12 @@
   - Collaborate with influencers to promote the app and reach a wider audience.
 - **Automated Bots:**
   - Implement bots for customer engagement and support.
+
+---
+
+conda env list
+conda create -n py311_holiday_v1 python=3.11.3
+
+conda activate py311_holiday_v1
+pip install -r requirements.txt
+conda install spyder-kernels==2.4.4
