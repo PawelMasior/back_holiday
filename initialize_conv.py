@@ -47,7 +47,7 @@ query = {
 # =============================================================================
 
 # =============================================================================
-
+agent_planner = get_agent_planner()
 Data = {}
 def save_restaurants(
         text: Annotated[str, "Markdown information about restaurants"],                
@@ -103,13 +103,11 @@ conv_beyondthecity, agent_planner, agent_beyondthecity, executor_beyondthecity =
     query, desc_beyondthecity, agent_planner, save_beyondthecity, 'beyond the city activities', get_prompt_beyondthecity)
 Conv += [conv_beyondthecity]
 
-# =============================================================================
-# bool_facilities = True
-# desc_facilities = """💻 Digital Nomad"""
-# conv_facilities, agent_planner, agent_facilities, executor_facilities = get_conv(
-#     query, desc_facilities, agent_planner, save_facilities, 'facilities', get_prompt_facilities)
-# Conv += [conv_facilities]
-# =============================================================================
+bool_facilities = True
+desc_facilities = """💻 Digital Nomad"""
+conv_facilities, agent_planner, agent_facilities, executor_facilities = get_conv(
+    query, desc_facilities, agent_planner, save_facilities, 'facilities', get_prompt_facilities)
+Conv += [conv_facilities]
 
 
 # =============================================================================
@@ -120,14 +118,9 @@ autogen.runtime_logging.stop()
 
 # =============================================================================
 
+with open(os.path.join('reports',f'{name_city}.json'), 'w') as f: json.dump(Data, f)
 
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    

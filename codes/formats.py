@@ -13,9 +13,9 @@ class AttractionDetails(BaseModel):
     source: str = Field(..., description="Information source URL")
 
 class Attractions(BaseModel):
-    data: List[AttractionDetails] = Field(..., description="Up to top 10 attractions")
     overview: str = Field(..., description="Overview of attractions available in the area")
     sources: str = Field(..., description="Brief describtion on sources used in the research")
+    data: List[AttractionDetails] = Field(..., description="Up to top 10 attractions")
 
 
 class RestaurantDetails(BaseModel):
@@ -31,9 +31,9 @@ class RestaurantDetails(BaseModel):
     source: str = Field(..., description="Information source URL")
 
 class Restaurants(BaseModel):
-    data: list[RestaurantDetails] = Field(..., description="Up to top 10 restaurants")
     overview: str = Field(..., description="Overview of restaurants offer in the town")
     sources: str = Field(..., description="Brief describtion on sources used in the research")
+    data: list[RestaurantDetails] = Field(..., description="Up to top 10 restaurants")
 
 
 class ActivityDetails(BaseModel):
@@ -49,9 +49,9 @@ class ActivityDetails(BaseModel):
     source: str = Field(..., description="Information source URL")
 
 class Activities(BaseModel):
-    data: List[ActivityDetails] = Field(..., description="Up to top 10 activities")
     overview: str = Field(..., description="Overview of activities available in the area")
     sources: str = Field(..., description="Brief describtion on sources used in the research")
+    data: List[ActivityDetails] = Field(..., description="Up to top 10 activities")
 
 
 class BeyondTheCityDetails(BaseModel):
@@ -67,9 +67,9 @@ class BeyondTheCityDetails(BaseModel):
     source: str = Field(..., description="Information source URL")
 
 class BeyondTheCity(BaseModel):
-    data: List[BeyondTheCityDetails] = Field(..., description="A list of up to the top 10 activities beyond the city")
     overview: str = Field(..., description="A summary or overview of the types of activities available beyond the city")
     sources: str = Field(..., description="Brief description of the sources used to collect information")
+    data: List[BeyondTheCityDetails] = Field(..., description="A list of up to the top 10 activities beyond the city")
 
 
 class FacilityDetails(BaseModel):
@@ -84,6 +84,6 @@ class FacilityDetails(BaseModel):
     source: str = Field(..., description="Information source URL")
 
 class Facilities(BaseModel):
-    data: List[FacilityDetails] = Field(..., description="A list of up to the top 10 facilities or services available in the city")
     overview: str = Field(..., description="A summary or overview of the types of facilities and services available")
     sources: str = Field(..., description="Brief description of the sources used to collect information")
+    data: List[FacilityDetails] = Field(..., description="A list of up to the top 10 facilities or services available in the city")

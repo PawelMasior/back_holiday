@@ -6,9 +6,10 @@ import autogen
 
 from tools.tavily import tavily_search
 from tools.firecrawl import firecrawl_page
-from formats.attractions import *
-from prompts.func import *
-from agents.func import *
+from codes.prompts import *
+from codes.agents import *
+from codes.formats import *
+
 
 def get_conv(query, desc, agent_planner, save_func, name, get_prompt):
     prompt = get_prompt(query, desc)

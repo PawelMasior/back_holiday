@@ -65,6 +65,29 @@ agent_planner = autogen.ConversableAgent(
     human_input_mode="NEVER",
 )
 
+def get_agent_planner():
+    return autogen.ConversableAgent(
+        name="Planner",
+        system_message = """
+        # You are the Planner monitoring the progress of the task to complete it.
+
+        ### Responsibilities
+        **Plan Development and Execution:**
+        - **Create Plan:** Outline specific steps needed to complete the research.
+        - **Monitor Progress:** Track the progress of each step and verify completion or if additional steps are required.
+        - **Make Decisions:** Make high-level decisions based on info from agents.
+        **Error Handling:**
+        - **Handle Errors:** Develop a new plan or adjust actions if errors occur or if responses are incorrect.
+        - **Guide Adjustments:** Direct agents on necessary changes to achieve task goals.
+
+        ### Reply 'TERMINATE' when the whole task is completed.
+        """,
+        llm_config=llm_config,
+        is_termination_msg=lambda msg: msg.get("content") is not None and "TERMINATE" in msg["content"],
+        max_consecutive_auto_reply=3,
+        human_input_mode="NEVER",
+    )
+
 agent_researcher = autogen.ConversableAgent(
     name="Researcher",
     system_message="""
@@ -103,8 +126,6 @@ def get_agent_researcher(name):
         max_consecutive_auto_reply=5,
         human_input_mode="NEVER",
         )
-
-
 
 agent_secretary = autogen.ConversableAgent(
     name="Secretary",
