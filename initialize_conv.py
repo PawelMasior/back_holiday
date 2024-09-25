@@ -14,24 +14,26 @@ from typing import Annotated, Literal
 from datetime import datetime
 from copy import deepcopy
 
-from settings.func import *
-from tools.web import web_search
-from tools.firecrawl import web_page
-from tools.info import *
-from prompts.func import *
-from agents.func import *
-from formats.restaurants import Restaurants
-from formats.attractions import Attractions
-from conv.func import *
 from review.func import dbname, log_report
+from settings.func import clean_memory
+from tools.tavily import tavily_search
+from tools.firecrawl import firecrawl_page
+from tools.save import save_data
 
-openai.api_key = os.getenv('OPENAI_API_KEY')
-client_openai = openai.OpenAI()
-seed = 123
-np.random.seed(seed)
-random.seed(seed)
-warnings.filterwarnings("ignore")
-clean_memory()
+from codes.prompts import *
+from codes.agents import *
+from codes.formats import *
+from codes.conv import get_conv
+
+# =============================================================================
+# openai.api_key = os.getenv('OPENAI_API_KEY')
+# client_openai = openai.OpenAI()
+# seed = 123
+# np.random.seed(seed)
+# random.seed(seed)
+# warnings.filterwarnings("ignore")
+# clean_memory()
+# =============================================================================
 
 # =============================================================================
 name_city = "Montpellier, France"
@@ -57,6 +59,21 @@ def save_attractions(
         ) -> str:
     return save_data(text, 'attractions', Attractions, Data)
 
+def save_activities(
+        text: Annotated[str, "Markdown information about activities"],                
+        ) -> str:
+    return save_data(text, 'activities', Activities, Data)
+
+def save_beyondthecity(
+        text: Annotated[str, "Markdown information about outdoor and cultural activities beyond the city"],                
+        ) -> str:
+    return save_data(text, 'beyond the city activities', BeyondTheCity, Data)
+
+def save_facilities(
+        text: Annotated[str, "Markdown information about facilities"],                
+        ) -> str:
+    return save_data(text, 'facilities', Facilities, Data)
+
 # =============================================================================
 Conv = []
 
@@ -66,83 +83,47 @@ Conv = []
 # conv_restaurants, agent_planner, agent_restaurants, executor_restaurants = get_conv(
 #     query, desc_restaurants, agent_planner, save_restaurants, 'restaurants', get_prompt_restaurants)
 # Conv += [conv_restaurants]
+# 
+# bool_attractions = True
+# desc_attractions = """🛍️ Shopping"""
+# conv_attractions, agent_planner, agent_attractions, executor_attractions = get_conv(
+#     query, desc_attractions, agent_planner, save_attractions, 'attractions', get_prompt_attractions)
+# Conv += [conv_attractions]
+# 
+# bool_activities = True
+# desc_activities = """🕵️‍♀️ Escape Rooms"""
+# conv_activities, agent_planner, agent_activities, executor_activities = get_conv(
+#     query, desc_activities, agent_planner, save_activities, 'activities', get_prompt_activities)
+# Conv += [conv_activities]
 # =============================================================================
 
-bool_attractions = True
-desc_attractions = """🛍️ Shopping, 📸 Scenic Spots"""
-conv_attractions, agent_planner, agent_attractions, executor_attractions = get_conv(
-    query, desc_attractions, agent_planner, save_attractions, 'attractions', get_prompt_attractions)
-Conv += [conv_attractions]
+bool_beyondthecity = True
+desc_beyondthecity = """🏖️ Beach"""
+conv_beyondthecity, agent_planner, agent_beyondthecity, executor_beyondthecity = get_conv(
+    query, desc_beyondthecity, agent_planner, save_beyondthecity, 'beyond the city activities', get_prompt_beyondthecity)
+Conv += [conv_beyondthecity]
 
 # =============================================================================
+# bool_facilities = True
+# desc_facilities = """💻 Digital Nomad"""
+# conv_facilities, agent_planner, agent_facilities, executor_facilities = get_conv(
+#     query, desc_facilities, agent_planner, save_facilities, 'facilities', get_prompt_facilities)
+# Conv += [conv_facilities]
+# =============================================================================
+
+
 # =============================================================================
 
 logging_session_id = autogen.runtime_logging.start(config={"dbname": dbname})
 chat_results = agent_planner.initiate_chats(Conv)
 autogen.runtime_logging.stop()
 
-
-# =============================================================================
-# =============================================================================
-# def get_prompt_restaurants(query, desc) -> str:  
-#     prompt = f"""
-#     Provide a curated list of restaurants in {query['name_city']} tailored for tourists.
-#     
-#     Focus on: {desc}.
-#     
-#     Requirements:
-#     - Specify the type of cuisine offered (e.g., Italian, Japanese).
-#     - Highlight each restaurant's unique feature (e.g., atmosphere, view).
-#     - Include each restaurant's specialty or signature dish.
-#     - Include the average price range with currency (e.g., "$$$").
-#     - Include each restaurant's address.
-#     - Include the opening hours of the restaurant.
-#     - Include detailed contact information: phone number and website URL.
-#     - Clearly indicate whether reservations are required ('Yes', 'No', 'No data').
-#     
-#     After you collectcted all data, save the data of the best ones (no duplicates) and finish the task.
-#     """
-#     return prompt
-# 
-# def get_conv_restaurants(query, desc_restaurants, agent_planner, save_restaurants):
-# 
-#     prompt_restaurants = get_prompt_restaurants(query, desc_restaurants)
-#     
-#     agent_restaurants = get_agent_researcher('restaurants')
-#     executor_restaurants = get_executor()
-#     
-#     autogen.register_function(web_search, caller=agent_restaurants, executor=executor_restaurants,
-#         name="web_search",
-#         description="""Searches internet with query, providing concise or detailed content as needed."""
-#     )
-#     autogen.register_function(web_page, caller=agent_restaurants, executor=executor_restaurants,
-#         name="web_page",
-#         description="""Retrieves website content by scraping URL."""
-#     )
-#     autogen.register_function(save_restaurants, caller=agent_restaurants, executor=executor_restaurants,
-#         name="save_restaurants",
-#         description="""Saves final report of restaurants from markdown format. """
-#     )
-#     queue = [
-#         {"recipient": agent_restaurants, "sender": executor_restaurants, "summary_method": "last_msg"},
-#         {"recipient": agent_planner, "sender": agent_restaurants, "summary_method": "reflection_with_llm"},
-#         ]
-#     agent_restaurants.register_nested_chats(trigger=agent_planner, chat_queue=queue)
-#     
-#     conv_restaurants = {
-#             "recipient": agent_restaurants,
-#             "message": f"""{prompt_restaurants}""",
-#             "max_turns": 10,
-#             "max_round": 30,
-#             "summary_method": "reflection_with_llm",
-#             }
-#     return conv_restaurants, agent_planner, agent_restaurants, executor_restaurants
 # =============================================================================
 
 
-# =============================================================================
 
-# =============================================================================
+
+
 
 
 

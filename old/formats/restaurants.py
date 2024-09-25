@@ -12,10 +12,10 @@ class RestaurantDetails(BaseModel):
     address: str = Field(..., description="Restaurant address")
     opening_hours: str = Field(..., description="Opening hours of the restaurant")
     reservation: str = Field(..., description="Reservation requirement info")
-    source: HttpUrl = Field(..., description="Information source URL")
+    source: str = Field(..., description="Information source URL")
 
 class Restaurants(BaseModel):
     data: list[RestaurantDetails] = Field(..., description="Up to top 10 restaurants")
     overview: str = Field(..., description="Overview of restaurants offer in the town")
-    summary: str = Field(..., description="Brief summary on sources in completed research")
+    sources: str = Field(..., description="Brief describtion on sources used in the research")
     

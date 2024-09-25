@@ -10,7 +10,7 @@ client_openai = OpenAI()
 firecrawl = FirecrawlApp(api_key=os.environ['FIRECRAWL_API_KEY'])
 from typing import Annotated, Literal
 
-def web_page(
+def firecrawl_page(
         url: Annotated[str, "Url"],
         context: Annotated[str, "Information you want to identify."],
     ) -> str:
@@ -46,7 +46,7 @@ def web_page(
     return web_content
 
 
-def web_page_raw(
+def firecrawl_page_raw(
         url: Annotated[str, "Url"],
     ) -> str:
     

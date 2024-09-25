@@ -25,7 +25,7 @@ try:
 except MissingAPIKeyError:
     print("API key is missing. Please provide a valid API key.")
     
-def web_search(
+def tavily_search(
         query: Annotated[str, "The query string to search for."],
         method: Annotated[str, f"Choose 'concise' for a brief answer or 'detailed' for comprehensive content. Default '{set_search['method']}'."] = set_search['method'],
         topic: Annotated[str, f"The category of the search. Choose between 'general' or 'news'. Default '{set_search['topic']}'."] = set_search['topic'],
