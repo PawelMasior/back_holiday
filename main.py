@@ -69,16 +69,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def home(): return 'holiday'
+# @app.get("/")
+# def home(): return 'holiday'
             
 @app.get("/report/")#, tags=["APIs"], response_model=str)
 def _report(
+        location: str = Query('user_data/guidebooks'),
         name_city: str = Query("Napoli"),
         date_fr: str = Query("07-12-2024"),
         date_to: str = Query("14-12-2024"),
         desc_attractions: str = Query("""🏛️ Museums, 🛍️ Shopping, ⛩️ Historical Sites"""),
-        desc_restaurants: str = Query("""🥣 Local Cuisine, ✨ Low budget"""),
+        desc_restaurants: str = Query("""🥣 Local Cuisine, 🌾 Gluten-Free"""),
         desc_activities: str = Query("""🕵️‍♀️ Escape Rooms, 💆‍♀️ Spa"""),
         desc_beyondthecity: str = Query("""🏔️ Hiking, 🍷 Wine Tours"""),
         desc_facilities: str = Query("""💻 Digital Nomad, 🚴 Bike Rental"""),
